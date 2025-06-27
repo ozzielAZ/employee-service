@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- Configuración común -->
+   <property name="LOG_HOME" value="/var/log/service-employee" />
+   <property name="APP_NAME" value="service-employee" />
+
+    <!-- Appender para consola (solo en dev y qa) -->
+    <springProfile name="docker | qa">
+        <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+            </encoder>
+        </appender>
+    </springProfile>
+
+    <!-- Appender para archivo (común a todos los perfiles) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_HOME}/${APP_NAME}.log</file>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_HOME}/archivo/${APP_NAME}-%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!-- Retención: 30 días en prod, 7 en qa -->
+            <springProfile name="prod">
+                <maxHistory>30</maxHistory>
+            </springProfile>
+            <springProfile name="qa">
+                <maxHistory>7</maxHistory>
+            </springProfile>
+        </rollingPolicy>
+    </appender>
+
+    <root level="INFO">
+        <springProfile name="docker | qa">
+            <appender-ref ref="CONSOLE" />
+        </springProfile>
+        <appender-ref ref="FILE" />
+    </root>
+</configuration>
